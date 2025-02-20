@@ -28,13 +28,14 @@ class _MyAppState extends State<MyApp> {
           body: Platform.isIOS
               ? Center(
                   child: ElevatedButton(
-                      onPressed: () {
-                        _simDataPlugin.sendSMS(
+                      onPressed: () async {
+                        final data = await _simDataPlugin.sendSMS(
                             phoneNumber:
-                                "", //Enter phone number with country code
+                                "+918949513914", //Enter phone number with country code
                             message: "This is a test message",
                             subId: 0 //This value is not used for iOS
                             );
+                        print(data);
                       },
                       child: const Text("Send SMS using this SIM")),
                 )
@@ -84,12 +85,13 @@ class _MyAppState extends State<MyApp> {
                               trailing: Text(e.countryCode),
                             ),
                             ElevatedButton(
-                                onPressed: () {
-                                  _simDataPlugin.sendSMS(
+                                onPressed: () async {
+                                  final data = await _simDataPlugin.sendSMS(
                                       phoneNumber:
-                                          "", //Enter phone number with country code
+                                          "+918949513014", //Enter phone number with country code
                                       message: "This is a test message",
                                       subId: e.subscriptionId);
+                                  print(data);
                                 },
                                 child: const Text("Send SMS using this SIM")),
                             const Divider()

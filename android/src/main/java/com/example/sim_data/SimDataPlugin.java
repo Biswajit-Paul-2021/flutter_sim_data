@@ -97,61 +97,48 @@ public class SimDataPlugin implements FlutterPlugin, MethodCallHandler, Activity
     }
   }
 
-  void getSimData(){
+  void getSimData()  {
     SubscriptionManager subscriptionManager = null;
     JSONArray array = new JSONArray();
       subscriptionManager = (SubscriptionManager) activity.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+      if (ActivityCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+        result.error("Error","Permission Denied","Permission Denied");
+        return;
+      }
       List<SubscriptionInfo> infoList = subscriptionManager != null ? subscriptionManager.getActiveSubscriptionInfoList() : null;
       for(int i = 0; i < Objects.requireNonNull(infoList).size(); i++){
         JSONObject map = new JSONObject();
         try{
           map.put("COUNTRY_CODE", infoList.get(i).getCountryIso());
-//          Log.i("COUNTRY_CODE", infoList.get(i).getCountryIso());
-
-//        Log.i("ICC_ID", infoList.get(i).getIccId());
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//          Log.i("MCC_STRING", Objects.requireNonNull(infoList.get(i).getMccString()));
-//        }
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//          Log.i("MNC_STRING", Objects.requireNonNull(infoList.get(i).getMncString()));
-//        }
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            Log.i("GET_PHONE_NUMBER", subscriptionManager.getPhoneNumber(infoList.get(i).getSubscriptionId()));
             map.put("PHONE_NUMBER", subscriptionManager.getPhoneNumber(infoList.get(i).getSubscriptionId()));
           }else{
-//            Log.i("GET_NUMBER", infoList.get(i).getNumber());
+
             map.put("PHONE_NUMBER", infoList.get(i).getNumber());
           }
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            Log.i("CARD_ID", String.valueOf(infoList.get(i).getCardId()));
             map.put("CARD_ID", infoList.get(i).getCardId());
           }else{
             map.put("CARD_ID", null);
           }
 
-//          Log.i("CARRIER_NAME", (String) infoList.get(i).getCarrierName());
           map.put("CARRIER_NAME", infoList.get(i).getCarrierName());
 
-//          Log.i("DISPLAY_NAME", (String) infoList.get(i).getDisplayName());
           map.put("DISPLAY_NAME", infoList.get(i).getDisplayName());
 
-//          Log.i("SIM_SLOT_INDEX", String.valueOf(infoList.get(i).getSimSlotIndex()));
           map.put("SIM_SLOT_INDEX", infoList.get(i).getSimSlotIndex());
 
-//          Log.i("SUBSCRIPTION_ID", String.valueOf(infoList.get(i).getSubscriptionId()));
           map.put("SUBSCRIPTION_ID", infoList.get(i).getSubscriptionId());
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//            Log.i("IS_EMBEDDED", String.valueOf(infoList.get(i).isEmbedded()));
+
             map.put("IS_EMBEDDED", infoList.get(i).isEmbedded());
           }else{
             map.put("IS_EMBEDDED", false);
           }
-//          Log.i("SIM_DATA", "------------------------------------------------------");
         }catch(JSONException e){
-//          e.printStackTrace();
           result.error("Error","Something went wrong!", "");
         }
         array.put(map);
@@ -159,7 +146,6 @@ public class SimDataPlugin implements FlutterPlugin, MethodCallHandler, Activity
       result.success(array.toString());
   }
 
-//  @SuppressLint("UnspecifiedRegisterReceiverFlag")
   void sendSMS(){
     String number = call.argument("phone");
     String message = call.argument("msg");
@@ -192,32 +178,39 @@ public class SimDataPlugin implements FlutterPlugin, MethodCallHandler, Activity
           public void onReceive(Context context, Intent intent) {
             int res = getResultCode();
             if(res == Activity.RESULT_OK){
-              Toast.makeText(context, "SMS Sent", Toast.LENGTH_SHORT).show();
+             result.success(true);
             }else{
-              Toast.makeText(context, "SMS not sent. Something went wrong!", Toast.LENGTH_SHORT).show();
+              result.success(false);
             }
+            context.unregisterReceiver(this);
           }
         },
         new IntentFilter(sent),
         Context.RECEIVER_EXPORTED
       );
+//Deliverd Listner not required
+//      context.registerReceiver(
+//        new BroadcastReceiver() {
+//          @Override
+//          public void onReceive(Context context, Intent intent) {
+//            int res = getResultCode();
+//            if(res == Activity.RESULT_OK){
+//              result.success(true);
+//            }else{
+//              result.success(false);
+//            }
+//            context.unregisterReceiver(this);
+//          }
+//
+//        }, new IntentFilter(delivered),
+//        Context.RECEIVER_EXPORTED
+//      );
 
-      context.registerReceiver(
-        new BroadcastReceiver() {
-          @Override
-          public void onReceive(Context context, Intent intent) {
-            int res = getResultCode();
-            if(res == Activity.RESULT_OK){
-              Toast.makeText(context, "SMS delivered", Toast.LENGTH_SHORT).show();
-            }else{
-              Toast.makeText(context, "SMS not delivered", Toast.LENGTH_SHORT).show();
-            }
-          }
-        }, new IntentFilter(delivered),
-        Context.RECEIVER_EXPORTED
-      );
-
+    try {
       smsManager.sendTextMessage(number, null, message, sendPendingIntent, deliveryPendingIntent);
+    } catch (Exception e) {
+      result.success(false);
+    }
   }
 
   private void requestPermission(){
