@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> {
                       onPressed: () async {
                         final data = await _simDataPlugin.sendSMS(
                             phoneNumber:
-                                "+918949513914", //Enter phone number with country code
+                                "", //Enter phone number with country code
                             message: "This is a test message",
                             subId: 0 //This value is not used for iOS
                             );
@@ -88,7 +88,7 @@ class _MyAppState extends State<MyApp> {
                                 onPressed: () async {
                                   final data = await _simDataPlugin.sendSMS(
                                       phoneNumber:
-                                          "+918949513014", //Enter phone number with country code
+                                          "", //Enter phone number with country code
                                       message: "This is a test message",
                                       subId: e.subscriptionId);
                                   print(data);
